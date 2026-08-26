@@ -40,6 +40,39 @@ const Monster* linearSearch(const std::vector<Monster>& bestiary,
 
 const Monster* binarySearch(const std::vector<Monster>& bestiary,
                             const std::string&         name) {
+
+    std:: size_t low = 0;
+    std:: size_t high = bestiary.size();
+
+    while (low < high) {
+        std:: size_t mid = low + (high - low) / 2;
+        const std::string& currentName = bestiary.at(mid).name;
+        if (currentName == name) {
+            return &bestiary.at(mid);
+        }
+        else if (currentName < name) {
+            low = mid + 1;
+        }
+        else {
+            high = mid;
+        }
+       
+    }
+    return nullptr;
+
+    /*
+    closed range --> [low,high]
+    half-open range --> [low,high)
+    if we go half-open 
+       1) like python
+       2) using std:: size_t for indices...
+          -size_t is unsigned
+          -we can end up doing high-1 when high is already at 0
+    (low + high)/2 could overflow for calculating mid value so better to do way above
+    
+    */
+
+    
     // TODO Floor 1 (Wed): iterative binary search.
     //   PRECONDITION: bestiary is sorted ascending by name.
     //
@@ -59,9 +92,7 @@ const Monster* binarySearch(const std::vector<Monster>& bestiary,
     //   - Middle index: `(low + high) / 2` is textbook but can overflow for
     //     huge N. `low + (high - low) / 2` is the safe version. Write the
     //     safe one — it's free, and it's a habit worth building.
-    (void)bestiary;
-    (void)name;
-    return nullptr;
+ 
 }
 
 const Monster* binarySearchRecursive(const std::vector<Monster>& bestiary,
