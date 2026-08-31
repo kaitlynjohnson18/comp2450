@@ -29,7 +29,62 @@ namespace dungeon {
 
 // ---- 1. Merge sort ------------------------------------------------------
 
+
+    namespace {
+
+        void merge(std::vector<Item>& v, std::size_t lo, std::size_t mid, std::size_t hi, const Comparator& cmp) {
+            //[low, mid) and [mid,high)
+            std::vector<Item> temp;
+            temp.reserve(hi - lo);
+
+            std::size_t i = lo; //walk the left half
+            std::size_t j = mid; //walk right half
+
+            //while both halves still have items, pick the smaller front of queue and append
+            while (i < mid && j < hi) {
+                if (!cmp(v[j], v[i])) {  //left is less than or equal to the right, makes it stable so equal values aren't swapped
+                    temp.push_back(v[i]);  //temp.push_back(v[i++])  is post increment; works
+                    i++;
+                }
+                else {
+                    temp.push_back(v[j]);
+                    j++;
+                }
+            }
+
+            while (i < mid) {
+                temp.push_back(v[i]);
+                i++;
+            }
+
+            while (j < hi) {
+                temp.push_back(v[j]);
+                j++;
+            }
+
+            for (std::size_t k = 0; k < temp.size(); k++) {
+                v[lo + k] = std::move(temp[k]);
+            }
+            return;
+        }
+
+        void mergeSortImpl(std::vector<Item>& v, std::size_t lo, std::size_t hi, const Comparator& cmp) {
+            if ((hi - lo) < 2) { //base case
+                return;
+            }
+
+            std::size_t mid = lo + (hi - lo) / 2;
+
+            mergeSortImpl(v, lo, mid, cmp);
+            mergeSortImpl(v, mid, hi, cmp);
+            merge(v, lo, mid, hi, cmp);
+        }
+    }
+
 void mergeSort(std::vector<Item>& inventory, const Comparator& cmp) {
+    mergeSortImpl(inventory, 0, inventory.size(), cmp);
+
+
     // TODO Floor 2 (Mon): implement merge sort.
     //
     // Think before you type:
@@ -119,6 +174,14 @@ void quicksort(std::vector<Item>& inventory, const Comparator& cmp) {
 // ---- 3. sortInventory (the seam) ----------------------------------------
 
 bool sortInventory(Hero& hero, const std::string& criterion) {
+
+    /*(void)criterion;
+    Comparator byWeight = [](const Item& a, const Item& b) {
+        return a.weight < b.weight;};
+    mergeSort(hero.inventory, byWeight);
+    return true;
+    */
+
     // TODO Floor 2 (Fri): parse criterion, build the right comparator,
     // dispatch to a sort.
     //
