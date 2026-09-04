@@ -24,6 +24,7 @@
 
 #include "Sort.h"
 #include <algorithm>  // you will want std::sort in sortInventory
+#include <sstream>
 
 namespace dungeon {
 
@@ -79,6 +80,66 @@ namespace dungeon {
             mergeSortImpl(v, mid, hi, cmp);
             merge(v, lo, mid, hi, cmp);
         }
+
+        std::size_t partition(std::vector<Item>& v, std::size_t low, std::size_t high, const Comparator& cmp) {
+            //high is our last index (inclusive)
+            //1. Pick the pivot value
+            std::size_t mid = low + (high - low) / 2;
+            std::swap(v[mid], v[high]); //exchanges these two items without copying 
+            const Item pivot = v[high];
+            //Lomuto: assumes pivot lives at high, moving pivot there so can follow implementation of Lomuto
+
+            //Lomuto scan
+            std::size_t store = low;
+            for (std::size_t i = low; i < high; ++i) {
+                if (cmp(v[i], pivot)) {
+                    std::swap(v[store], v[i]);
+                    ++store;
+                }
+                //[low,store) --> strictly less than the pivot
+                //[store,high) --> >=pivot
+            }
+            std::swap(v[store], v[high]);
+            return store;
+        }
+
+        void quicksortImpl(std::vector<Item>& v, std::size_t low, std::size_t high, const Comparator& cmp) {
+            if (low >= high) return;
+            std::size_t p = partition(v, low, high, cmp);
+            if (p > low) quicksortImpl(v, low, p - 1, cmp);
+            quicksortImpl(v, p + 1, high, cmp);
+        }
+
+        Comparator makeComparator(const std::string& key, bool descending) {
+            Comparator cmp;
+            //std::function<bool(const Item&, const Item&)>
+            if (key == "name") {
+                cmp = [](const Item& a, const Item& b) {
+                    return a.name < b.name;
+                    };
+            }
+            else if (key == "weight") {
+                cmp = [](const Item& a, const Item& b) {
+                    return a.weight < b.weight;
+                    };
+            }
+            else if (key == "value") {
+                cmp = [](const Item& a, const Item& b) {
+                    return a.value < b.value;
+                    };
+            }
+            else return nullptr;
+
+            if (descending) {
+                Comparator asc = cmp;
+                cmp = [asc](const Item& a, const Item& b) {
+                    return asc(b, a); //calling with arguments swapped
+                    };
+            }
+
+            return cmp;
+        }
+
     }
 
 void mergeSort(std::vector<Item>& inventory, const Comparator& cmp) {
@@ -126,6 +187,8 @@ void mergeSort(std::vector<Item>& inventory, const Comparator& cmp) {
 // ---- 2. Quicksort -------------------------------------------------------
 
 void quicksort(std::vector<Item>& inventory, const Comparator& cmp) {
+    if (inventory.size() < 2) return;
+    quicksortImpl(inventory, 0, inventory.size() - 1, cmp);
     // TODO Floor 2 (Wed): implement quicksort.
     //
     // Think before you type:
@@ -144,6 +207,7 @@ void quicksort(std::vector<Item>& inventory, const Comparator& cmp) {
     //   - Is quicksort stable? (Answer: no — and that is why production
     //     std::sort is ALSO not stable. If you need stability, reach for
     //     std::stable_sort or your mergeSort.)
+    //   - Lomuto partitioning
     //
     // If you need structural hints — helpers in an anonymous namespace:
     //
@@ -174,6 +238,16 @@ void quicksort(std::vector<Item>& inventory, const Comparator& cmp) {
 // ---- 3. sortInventory (the seam) ----------------------------------------
 
 bool sortInventory(Hero& hero, const std::string& criterion) {
+    std::istringstream in(criterion);
+    std::string key;
+    std::string dir;
+    in >> key >> dir;
+
+    bool descending = (dir == "desc");
+    Comparator cmp = makeComparator(key, descending);
+    if (!cmp) return false;
+    std::sort(hero.inventory.begin(), hero.inventory.end(), cmp);
+    return true;
 
     /*(void)criterion;
     Comparator byWeight = [](const Item& a, const Item& b) {
@@ -216,6 +290,25 @@ bool sortInventory(Hero& hero, const std::string& criterion) {
     // Dispatch: for this week std::sort is the right production choice.
     // Your mergeSort and quicksort are correct too — pick one and
     // defend it in your commit message.
+
+
+    /* Comparator Notes
+    * comparator -- a function, typically a lambda in c++, 
+    * Lambda - flexible, temporary function
+    * does a come strictly before b?
+    * cmp(a, b) == true if a strictly < b
+    * cmp(a, b) == false if a >= b
+    * strict weak ordering
+    
+    
+    
+    
+    
+    
+    */
+
+
+
     (void)hero;
     (void)criterion;
     return false;
