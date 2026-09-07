@@ -133,8 +133,15 @@ int main() {
             }
             // TODO Floor 3 (Mon): wire this to findByName<T>. For now
             // it still calls Floor 1's monster-only findMonster.
-            const Monster* m = findMonster(bestiary, rest);
-            if (m) { printMonster(*m); continue; }
+            const Monster* m = findByName(bestiary, rest);
+            if (m) { printMonster(*m); continue; }  //if the name was found in the monster list aka not nullptr, if not, checks item list
+
+            const Item* it = findByName(hero.inventory, rest);
+            if (it) {
+                std::cout << "  " << it->name << "   (wt " << it->weight << ", val " << it->value << ")\n";
+                continue;   //arrow returns a pointer
+            }
+            //const Monster* m = findMonster(bestiary, rest);
             std::cout << "No such creature stalks this Keep.\n";
         }
         else if (cmd == "inventory") {
