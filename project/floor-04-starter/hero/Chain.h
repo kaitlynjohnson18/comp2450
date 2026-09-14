@@ -129,7 +129,7 @@ public:
     // TODO Floor 4 (Monday) — return the cached size_.
     // We cache size so size() is O(1). Walking the chain to count would
     // be O(n) on every call; the log is queried by `log <n>` constantly.
-    std::size_t size() const  { return 0; /* TODO Monday */ }
+    std::size_t size() const { return size_; }
     bool        empty() const { return size() == 0; }
 
     // Raw head pointer. Callers walk the chain by hand:
@@ -138,8 +138,8 @@ public:
     // this week.
     //
     // TODO Floor 4 (Monday) — return head_.
-    const Node* head() const { return nullptr; /* TODO Monday */ }
-    Node*       head()       { return nullptr; /* TODO Monday */ }
+    const Node* head() const { return head_; /* TODO Monday */ }
+    Node*       head()       { return head_; /* TODO Monday */ } //for mutation
 
     // -----------------------------------------------------------------
     // Mutation
@@ -152,8 +152,11 @@ public:
     //     Node* n = new Node(value, head_);
     //     head_   = n;
     //     ++size_;
-    void push_front(const T& /*value*/) {
+    void push_front(const T& value) {
         // TODO Monday
+        Node* n = new Node(value, head_); //value is the value type T within the Node, and the second parameter is next
+        head_ = n; //the chain's new head pointer points at our new node
+        ++size_;  //bump chain size
     }
 
     // Walk and delete every node. Leaves the chain empty.
