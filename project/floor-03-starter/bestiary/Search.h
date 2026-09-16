@@ -88,9 +88,7 @@ const T* findByName(const Bag<T>& items, const std::string& name) { //returns a 
     //     - What expression takes the address of the current element?
     //     - Floor 1's linearSearch is literally this function with T
     //       hardcoded to Monster. Copy its SHAPE; drop the hardcode.
-    (void)items;
-    (void)name;
-    return nullptr;
+
 }
 
 }  // namespace dungeon

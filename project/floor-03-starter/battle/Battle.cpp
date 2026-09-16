@@ -93,12 +93,19 @@ struct MenuOptions {
 
 }  // anonymous namespace
 
+void ValidateHP(int& HP) {
+    if (HP < 0) {
+        HP = 0;
+    }
+    return;
+}
+
 void PrintMenu(Bag<MenuOptions> menu, int playerHP, int wardenHP) {
     std::cout << "\n -- Your turn --    your HP: " << playerHP << "    Warden HP: " << wardenHP << "\n";
     for (MenuOptions& option : menu) {
         std::cout << "   " << option.number << ". " << option.action << "\n";
     }
-    std::cout << "<";
+    std::cout << ">";
 }
 
 MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
@@ -107,7 +114,7 @@ MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
         std::cin >> input;
     }
     catch (...) {
-        throw BattleException(" is not a menu number");
+        throw BattleException(" is not a menu number.\n>");
     }
 
     for (size_t i = 0; i < menu.size(); i++) {
@@ -116,6 +123,70 @@ MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
         }
     }
     throw BagException(static_cast<size_t>(input), menu.size());
+}
+
+void AttackAction(int& playerHP, int& wardenHP) {
+    wardenHP = wardenHP - kPlayerAttackDmg;
+    ValidateHP(wardenHP);
+    std::cout << "You strike for " << kPlayerAttackDmg <<
+        ".  Warden HP -> " << wardenHP << "\n";
+    playerHP = playerHP - kWardenAttackDmg;
+    ValidateHP(playerHP);
+    std::cout << "The Warden retaliates for " << kWardenAttackDmg << ". Your HP -> " << playerHP << "\n";
+}
+
+void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
+    if (hero.inventory.empty()) {
+        std::cout << "Your satchel is empty.\n";
+    }
+    else {
+        bool found = false;
+        std::string input;
+        const Item* item;
+        std::string empty;
+        sortInventory(hero, "value desc");
+        while (!found) {
+
+            std::cout << "Choose an item by name: \n" << ">";
+            printInventory(hero);
+            getline(std::cin, empty);
+            getline(std::cin, input);
+            if (input.empty()) {
+                std::cout << "You hesitate.\n";
+                return;
+            }
+          
+            item = findByName<Item>(hero.inventory, input);
+            if (!item) {
+                throw BattleException(" No such item exists.\n >");
+            }
+            else {
+                if (item->name == "Healing potion") {
+                    playerHP = playerHP + item->value;
+                    if (playerHP > kPlayerStartHP) {
+                        playerHP = kPlayerStartHP;
+                    }
+                    std::cout << "You drink Healing potion. HP -> " <<
+                        playerHP << ". \n";
+                    found = true;
+                }
+                else if (item->name == "Rusty sword") {
+                    wardenHP = wardenHP - item->value;
+                    ValidateHP(wardenHP);
+                    std::cout << "You attack with a Rusty Sword. Warden HP -> " <<
+                        wardenHP << ".\n";
+                    found = true;
+                }
+                else {
+                    std::cout << item->name << " fails to provide aid.\n";
+                    found = true;
+                }
+            }
+           
+        }
+    }
+
+    
 }
 
 
@@ -137,14 +208,27 @@ BattleOutcome runWardenBattle(Hero& hero) {
             MenuOptions selectedOption;
             selectedOption = ReadTurnInput(menu);
             switch (selectedOption.number) {
-            case 1:
+
+            case 1: //Attack
+                AttackAction(playerHP, wardenHP);
                 break;
-            case 2:
+
+            case 2: //Use Item
+                UseItemAction(hero, playerHP, wardenHP);
+                playerHP = playerHP - kWardenAttackDmg;
+                ValidateHP(playerHP);
+                std::cout << "The Warden strikes while you fumble. Your HP -> " <<
+                    playerHP << ".\n";
                 break;
-            case 3:
+
+            case 3:  //Inspect Warden
+                std::cout << "Warden of the Foundations. HP:  " << wardenHP << " / " <<
+                    kWardenStartHP << ".\n Attack Strength: " << kWardenAttackDmg <<
+                    "\nNo visible weakness. (free action)\n";
                 break;
-            case 4:
-                break;
+
+            case 4: //Flee
+                return BattleOutcome::Fled;
             }
 
 
@@ -152,9 +236,10 @@ BattleOutcome runWardenBattle(Hero& hero) {
             
 
         }
-        catch (const BagException& e) {
+        catch (const std::exception& e) {
             std::cout << e.what() << " - try again\n";
         }
+        
 
     }
 
