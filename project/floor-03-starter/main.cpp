@@ -32,6 +32,8 @@
 #include "hero/Bench.h"
 #include "hero/Hero.h"
 #include "hero/Sort.h"
+#include "battle/Battle.h"
+
 
 using namespace dungeon;
 
@@ -54,6 +56,7 @@ void printHelp() {
               << "   benchmark [N]                 — race the search algorithms\n"
               << "   benchmark sort [N] [--sorted] [--bad-pivot]\n"
               << "                                 — race the sorting algorithms\n"
+              << "   battle warden                 — face the Warden of the Foundations\n"
               << "   help                          — this screen\n"
               << "   quit                          — leave the dungeon)\n";
 }
@@ -233,6 +236,21 @@ int main() {
                     catch (const std::exception&) {
                         std::cout << "Usage: benchmark [N]   or   benchmark sort [N] [flags]\n";
                     }
+                }
+            }
+            else if (cmd == "battle") {
+                if (rest != "warden") {
+                    std::cout << "Usage: battle warden\n";
+                    continue;
+                }
+                BattleOutcome outcome = runWardenBattle(hero);
+                switch (outcome) {
+                case BattleOutcome::Victory:
+                    std::cout << "\nThe Warden falls. The gate opens.\n"; break;
+                case BattleOutcome::Defeat:
+                    std::cout << "\nYou fall. The gate stays shut.\n"; break;
+                case BattleOutcome::Fled:
+                    std::cout << "\nYou step back from the gate. It does not chase.\n"; break;
                 }
             }
             else {

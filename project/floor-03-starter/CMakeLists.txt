@@ -26,6 +26,7 @@ endif()
 
 add_executable(the_descent
     main.cpp
+    battle/Battle.cpp
     bestiary/Bestiary.cpp
     bestiary/Search.cpp
     bestiary/Bench.cpp
