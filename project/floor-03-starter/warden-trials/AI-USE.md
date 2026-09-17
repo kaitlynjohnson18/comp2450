@@ -12,15 +12,19 @@ Example entries:
 ## Trial I — The Foundations Brief
 
 (your declaration)
+Trial I - Used Gemini to double check Big O values and to double check that templates were actually used in the std::sort function.
+Wrote answers by myself first though
 
 ## Trial II — The Critique
 
 This trial **requires** AI use. The full prompt + reply + critique are in `trial-2-critique.md`. If you used a different LLM for any other reason on this trial (e.g., to look up syntax), declare it here:
 
 (your declaration)
+Trial II - used Gemini for prompt as declared in trial II file. Did not use any other AI
 
 ## Trial III — The Encounter
 
 (your declaration)
+Trial III - Did not use
 
 The two functions in your battle code that you wrote *without* AI assistance are named in `encounter-notes.md`. Friday's quiz pulls from those.

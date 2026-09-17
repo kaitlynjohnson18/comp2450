@@ -123,8 +123,9 @@ MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
     try {
         input = std::stoi(in);
     }
-    catch (...) {
-        throw BattleException(" Alas, this is not a menu number.\n>");
+    catch (...) {//catching an error from the stoi() function in order to throw a BattleException
+        throw BattleException(" Alas, this is not a menu number. ");
+        //Floor 3: throwing the BattleException when something other than a number is input
     }
 
     for (size_t i = 0; i < menu.size(); i++) {
@@ -133,6 +134,7 @@ MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
         }
     }
     throw BagException(static_cast<size_t>(input), menu.size());
+    //Floor 3: throwing a BagException when it is a bad index
 }
 
 void AttackAction(int& playerHP, int& wardenHP) {
@@ -152,22 +154,23 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
         std::string input;
         const Item* item;
         //std::string empty;
-        sortInventory(hero, "value desc");
+        sortInventory(hero, "value desc"); 
+        //Floor 2 (sort): sorted by descending value so that the most valuable items are at the top and therefore most visible
 
         while (!found) {
 
             std::cout << "Choose an item by name: \n" << ">";
             printInventory(hero);
-            //getline(std::cin, empty);
             getline(std::cin, input);
             if (input.empty()) {
                 std::cout << "You hesitate.\n";
                 return;
             }
           
-            item = findByName<Item>(hero.inventory, input);
+            item = findByName<Item>(hero.inventory, input); //Floor 1 (search) tie-in
             if (!item) {
-                throw BattleException(" No such item exists.\n >");
+                throw BattleException(" No such item exists.");
+                //Floor 3: throwing a BattleException for an invalid item input
             }
             else {
                 if (item->name == "Healing potion") {
@@ -181,9 +184,11 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
                 }
                 else if (item->name == "Rusty sword") {
                     wardenHP = wardenHP - item->value;
+                    playerHP -= 1;
                     ValidateHP(wardenHP);
-                    std::cout << "You attack with a Rusty Sword. Warden HP -> " <<
-                        wardenHP << ".\n";
+                    ValidateHP(playerHP);
+                    std::cout << "You attack with a Rusty Sword but also cut yourself. Warden HP -> " <<
+                        wardenHP << ".\n" << "Your HP: " << playerHP << "\n";
                     found = true;
                 }
                 else {
@@ -205,6 +210,10 @@ BattleOutcome runWardenBattle(Hero& hero) {
     int playerHP = kPlayerStartHP;
     int wardenHP = kWardenStartHP;
 
+
+    //The Menu uses a Bag because you need to be able to access any element at any time, and it doesn't 
+    //particularly matter what order actions are presented in as long as you can access them 
+    //and the order doesn't change randomly everytime you print them.
     Bag<MenuOptions> menu;
     menu.push_back({ 1, "Attack" });
     menu.push_back({ 2, "Use Item" });
@@ -237,13 +246,11 @@ BattleOutcome runWardenBattle(Hero& hero) {
                 return BattleOutcome::Fled;
             }
 
-
-            
-            
-
         }
         catch (const std::exception& e) {
             std::cout << e.what() << " - try again\n";
+            //Floor 3: catching both the BagException and the Battle Exception to print unique error and to tell user to try again
+            //The code will then loop back through for another turn without warden retaliation
         }
         
 
