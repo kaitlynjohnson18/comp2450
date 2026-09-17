@@ -100,6 +100,14 @@ void ValidateHP(int& HP) {
     return;
 }
 
+void WardenAttack(int& playerHP, int& wardenHP) {
+    if (playerHP > 0 && wardenHP > 0) {
+        playerHP = playerHP - kWardenAttackDmg;
+        ValidateHP(playerHP);
+        std::cout << "The Warden retaliates for " << kWardenAttackDmg << ". Your HP -> " << playerHP << "\n";
+    }
+}
+
 void PrintMenu(Bag<MenuOptions> menu, int playerHP, int wardenHP) {
     std::cout << "\n -- Your turn --    your HP: " << playerHP << "    Warden HP: " << wardenHP << "\n";
     for (MenuOptions& option : menu) {
@@ -109,12 +117,14 @@ void PrintMenu(Bag<MenuOptions> menu, int playerHP, int wardenHP) {
 }
 
 MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
+    std::string in;
     int input;
+    getline(std::cin, in);
     try {
-        std::cin >> input;
+        input = std::stoi(in);
     }
     catch (...) {
-        throw BattleException(" is not a menu number.\n>");
+        throw BattleException(" Alas, this is not a menu number.\n>");
     }
 
     for (size_t i = 0; i < menu.size(); i++) {
@@ -130,9 +140,7 @@ void AttackAction(int& playerHP, int& wardenHP) {
     ValidateHP(wardenHP);
     std::cout << "You strike for " << kPlayerAttackDmg <<
         ".  Warden HP -> " << wardenHP << "\n";
-    playerHP = playerHP - kWardenAttackDmg;
-    ValidateHP(playerHP);
-    std::cout << "The Warden retaliates for " << kWardenAttackDmg << ". Your HP -> " << playerHP << "\n";
+    WardenAttack(playerHP, wardenHP);
 }
 
 void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
@@ -143,13 +151,14 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
         bool found = false;
         std::string input;
         const Item* item;
-        std::string empty;
+        //std::string empty;
         sortInventory(hero, "value desc");
+
         while (!found) {
 
             std::cout << "Choose an item by name: \n" << ">";
             printInventory(hero);
-            getline(std::cin, empty);
+            //getline(std::cin, empty);
             getline(std::cin, input);
             if (input.empty()) {
                 std::cout << "You hesitate.\n";
@@ -166,7 +175,7 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
                     if (playerHP > kPlayerStartHP) {
                         playerHP = kPlayerStartHP;
                     }
-                    std::cout << "You drink Healing potion. HP -> " <<
+                    std::cout << "You guzzle a delicious draught of Healing potion. HP -> " <<
                         playerHP << ". \n";
                     found = true;
                 }
@@ -215,10 +224,7 @@ BattleOutcome runWardenBattle(Hero& hero) {
 
             case 2: //Use Item
                 UseItemAction(hero, playerHP, wardenHP);
-                playerHP = playerHP - kWardenAttackDmg;
-                ValidateHP(playerHP);
-                std::cout << "The Warden strikes while you fumble. Your HP -> " <<
-                    playerHP << ".\n";
+                WardenAttack(playerHP, wardenHP);
                 break;
 
             case 3:  //Inspect Warden
@@ -244,10 +250,10 @@ BattleOutcome runWardenBattle(Hero& hero) {
     }
 
     if (playerHP <= 0) {
-        return BattleOutcome::Victory;
+        return BattleOutcome::Defeat;
     }
     else if (wardenHP <= 0) {
-        return BattleOutcome::Defeat;
+        return BattleOutcome::Victory;
     }
     return BattleOutcome::Fled;
     
