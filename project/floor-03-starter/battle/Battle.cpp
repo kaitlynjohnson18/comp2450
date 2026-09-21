@@ -80,11 +80,12 @@ namespace {
 // Tunable battle parameters. Edit to taste; document any tuning in
 // encounter-notes.md so the grader knows what to expect.
 // =====================================================================
-constexpr int kPlayerStartHP   = 30;
-constexpr int kWardenStartHP   = 50;
+constexpr int kPlayerStartHP   = 30;  //constexpr means these values are compile-time constants
+constexpr int kWardenStartHP   = 50; //k prefix = means constant
 constexpr int kPlayerAttackDmg = 6;   // damage per Attack action
 constexpr int kWardenAttackDmg = 4;   // warden's retaliation damage
 
+//Could have also down enum class where there is a set of named choices; keep our names of turn choices scoped
 
 struct MenuOptions {
     int number;
@@ -116,15 +117,16 @@ void PrintMenu(Bag<MenuOptions> menu, int playerHP, int wardenHP) {
     std::cout << ">";
 }
 
-MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
+MenuOptions ReadTurnInput(const Bag<MenuOptions>& menu) {
     std::string in;
     int input;
-    getline(std::cin, in);
+    std::getline(std::cin, in);
+    // if (!std::getline(std::cin, line)) {return MenuAction::Flee; }
     try {
         input = std::stoi(in);
     }
-    catch (...) {//catching an error from the stoi() function in order to throw a BattleException
-        throw BattleException(" Alas, this is not a menu number. ");
+    catch (...) {//catching any exception type thrown from the stoi() function in order to throw a BattleException
+        throw BattleException(" Alas, this is not a menu number. (enter 1 to " + std::to_string(menu.size()) + ")");
         //Floor 3: throwing the BattleException when something other than a number is input
     }
 
@@ -133,7 +135,7 @@ MenuOptions ReadTurnInput(Bag<MenuOptions> menu) {
             return menu.at(i);
         }
     }
-    throw BagException(static_cast<size_t>(input), menu.size());
+    throw BagException(static_cast<std::size_t>(input), menu.size());
     //Floor 3: throwing a BagException when it is a bad index
 }
 
@@ -150,25 +152,21 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
         std::cout << "Your satchel is empty.\n";
     }
     else {
-        bool found = false;
         std::string input;
         const Item* item;
-        //std::string empty;
         sortInventory(hero, "value desc"); 
         //Floor 2 (sort): sorted by descending value so that the most valuable items are at the top and therefore most visible
 
-        while (!found) {
-
             std::cout << "Choose an item by name: \n" << ">";
             printInventory(hero);
-            getline(std::cin, input);
-            if (input.empty()) {
+            if (!std::getline(std::cin, input) || input.empty()) {
                 std::cout << "You hesitate.\n";
                 return;
             }
-          
+
             item = findByName<Item>(hero.inventory, input); //Floor 1 (search) tie-in
-            if (!item) {
+            // function template specialization
+            if (!item) { //if it is a nullptr and you didn't find anything
                 throw BattleException(" No such item exists.");
                 //Floor 3: throwing a BattleException for an invalid item input
             }
@@ -180,7 +178,7 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
                     }
                     std::cout << "You guzzle a delicious draught of Healing potion. HP -> " <<
                         playerHP << ". \n";
-                    found = true;
+                    return;
                 }
                 else if (item->name == "Rusty sword") {
                     wardenHP = wardenHP - item->value;
@@ -189,14 +187,15 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
                     ValidateHP(playerHP);
                     std::cout << "You attack with a Rusty Sword but also cut yourself. Warden HP -> " <<
                         wardenHP << ".\n" << "Your HP: " << playerHP << "\n";
-                    found = true;
+                    return;
                 }
                 else {
                     std::cout << item->name << " fails to provide aid.\n";
-                    found = true;
+                    return;
                 }
-            }
-           
+
+
+            
         }
     }
 
@@ -227,24 +226,24 @@ BattleOutcome runWardenBattle(Hero& hero) {
             selectedOption = ReadTurnInput(menu);
             switch (selectedOption.number) {
 
-            case 1: //Attack
-                AttackAction(playerHP, wardenHP);
-                break;
+                case 1: //Attack
+                    AttackAction(playerHP, wardenHP);
+                    break;
 
-            case 2: //Use Item
-                UseItemAction(hero, playerHP, wardenHP);
-                WardenAttack(playerHP, wardenHP);
-                break;
+                case 2: //Use Item
+                    UseItemAction(hero, playerHP, wardenHP);
+                    WardenAttack(playerHP, wardenHP);
+                    break;
 
-            case 3:  //Inspect Warden
-                std::cout << "Warden of the Foundations. HP:  " << wardenHP << " / " <<
-                    kWardenStartHP << ".\n Attack Strength: " << kWardenAttackDmg <<
-                    "\nNo visible weakness. (free action)\n";
-                break;
+                case 3:  //Inspect Warden
+                    std::cout << "Warden of the Foundations. HP:  " << wardenHP << " / " <<
+                        kWardenStartHP << ".\n Attack Strength: " << kWardenAttackDmg <<
+                        "\nNo visible weakness. (free action)\n";
+                    break;
 
-            case 4: //Flee
-                return BattleOutcome::Fled;
-            }
+                case 4: //Flee
+                    return BattleOutcome::Fled;
+                }
 
         }
         catch (const std::exception& e) {
