@@ -96,13 +96,15 @@ void printLog(const Hero& hero, std::size_t n) {
 // Until you implement this, `log --oldest` will print a placeholder
 // and the build will stay green so the rest of the game still runs.
 void printLogOldest(const Hero& hero, std::size_t n) {
-    (void)n;
     if (hero.eventLog.empty()) {
         std::cout << "  (the chain is empty — nothing to remember yet)\n";
         return;
     }
-    std::cout << "  (printLogOldest not yet implemented — see hero/Hero.cpp)\n"
-              << "  (chain length " << hero.eventLog.size() << ")\n";
+    std::size_t printed = 0;
+    for (const auto* p = hero.eventLog.tail(); p != nullptr && (n == 0 || printed < n); p = p->prev, ++printed) {
+        std::cout << " " << std::setw(2) << std::right << (printed + 1) << ". " << p->data << "\n";
+    } //starting at end, navigating to previous pointer until p is either nullptr or size is zero or you've printed all that you've said
+    std::cout << "oldest first; chain length " << hero.eventLog.size() << ".\n";
 }
 
 }  // namespace dungeon

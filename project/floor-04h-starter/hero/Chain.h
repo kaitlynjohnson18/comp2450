@@ -121,7 +121,10 @@ public:
     //
     // Leaving this empty means a copy of a chain is silently empty.
     // The `clone hero` command will demonstrate the bug.
-    Chain(const Chain& /*other*/) {
+    Chain(const Chain& other) {
+        for (const Node* p = other.head_; p != nullptr; p = p->next) {
+            push_back(p->data); //creating new node for head and then pushing back the data, therefore creating new nodes
+        }
         // TODO Wednesday — deep copy.
     }
 
@@ -174,8 +177,8 @@ public:
 
     // TODO Floor 4½ (Monday) — return tail_.
     // Used by `log --oldest`, which walks the chain backward via prev.
-    const Node* tail() const { return nullptr; /* TODO Monday */ }
-    Node*       tail()       { return nullptr; /* TODO Monday */ }
+    const Node* tail() const { return tail_;  }
+    Node*       tail()       { return tail_; }
 
     // -----------------------------------------------------------------
     // Mutation — Floor 4's push_front kept, with a Floor 4½ extension.
@@ -198,7 +201,12 @@ public:
     // -----------------------------------------------------------------
     void push_front(const T& value) {
         Node* n = new Node(value, nullptr, head_);
-        // TODO Monday — wire prev/tail consistency (see comment above).
+        if (head_ != nullptr) { //if there was a head, adding head's previous value to new node
+            head_->prev = n; 
+        }
+        else {
+            tail_ = n; //chain was empty, n is also the tail
+        }
         head_ = n;
         ++size_;
     }
@@ -211,8 +219,16 @@ public:
     //     else                  head_ = n;
     //     tail_ = n;
     //     ++size_;
-    void push_back(const T& /*value*/) {
-        // TODO Monday
+    void push_back(const T& value) {
+        Node* n = new Node(value, tail_, nullptr); //prev was the current tail, next is nullptr
+        if (tail_ != nullptr) {
+            tail_->next = n; //there was a value at tail so adding next for tail
+        }
+        else {
+            head_ = n; //chain was empty so head is also this value
+        }
+        tail_ = n;
+        ++size_;
     }
 
     // TODO Floor 4½ (Friday) — remove the front node. O(1).
