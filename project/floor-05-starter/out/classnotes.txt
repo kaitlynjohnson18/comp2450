@@ -1,0 +1,42 @@
+this is a reserved keyword in c++
+hidden pointer to current object instance within a class's non-static member functions
+When we call a method on an object, c++ can auto pass the memory address of that object into a method as a 'this' pointer
+Could use for resolving name conflicts (disambiguation)
+Could return the current object (method chaining)
+Could pass the object to an external function
+
+class Player {
+	private:
+	int health = 50;
+
+	public:
+	void setHealth(int health) {
+		this->health = health; //distinguishes member from the parameter
+	}
+
+	Player& heal(int amount) {
+		health += amount;
+		std::cout << "Healed to " << health << " HP\n";
+		return *this;  //returning current player object
+	}
+
+	Player& attack() {
+		std::cout <, "Player attacks!\n";
+		return *this;
+	}
+
+	void celebrate() { //lets the lambda access the object's members
+		auto message = [this]() {
+			std::cout << "Victory with " << ehalth << "HP!\n";
+		};
+		message();
+	}
+
+	int main() {
+		Player player;
+
+		player.setHealth(80); //uses this->health
+		player.heal(10).attack() //each method just returns this object pointer
+		player.celebrate(); //lambda captures this, which is the object
+		return 0;
+	}
