@@ -50,7 +50,7 @@ public:
     // Default ctor, dtor, copy, and assign are all fine: Chain<T> has
     // a working Rule of Three (Floor 4½). Stack just inherits that
     // behavior transitively.
-    Stack()                              = default;
+    Stack()                              = default; //Composition: inheriting this from chain
     ~Stack()                             = default;
     Stack(const Stack& other)            = default;
     Stack& operator=(const Stack& other) = default;
@@ -62,7 +62,7 @@ public:
     // TODO Floor 6 (Monday). Body is one line.
     //     chain_.push_front(value);
     void push(const T& value) {
-        (void)value;   // silence unused-parameter warning while stubbed
+        chain_.push_front(value);   // silence unused-parameter warning while stubbed
         // TODO Monday
     }
 
@@ -73,7 +73,7 @@ public:
     // TODO Floor 6 (Monday). Body is one line.
     //     chain_.pop_front();
     void pop() {
-        // TODO Monday
+        chain_.pop_front();
     }
 
     // Read the top of the stack. O(1). PROVIDED — you do not write this.
@@ -99,7 +99,7 @@ public:
     // TODO Floor 6 (Monday). Body is one line.
     //     return chain_.size();
     std::size_t size() const {
-        return 0;   // TODO Monday
+        return chain_.size();   // TODO Monday
     }
 
     // True iff size() == 0.
@@ -108,7 +108,7 @@ public:
     // to touch chain_; you can delegate to your own size().
     //     return size() == 0;
     bool empty() const {
-        return true;   // TODO Monday
+        return (size() == 0);   // TODO Monday
     }
 
 private:
