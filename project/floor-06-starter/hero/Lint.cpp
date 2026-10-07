@@ -46,8 +46,35 @@ namespace dungeon {
 //     }
 //     return s.empty();
 
-bool isBalanced(const std::string& /*input*/) {
-    return false;   // TODO Wednesday
+bool isBalanced(const std::string& line) {
+    Stack<char> s;
+    for (char c : line) { //each character within the string looped through
+        switch (c) {
+        case '(': 
+        case '{': 
+        case '[':  //if opening, then just push on the stack
+            s.push(c);
+            break;
+        case ')':    // if end parentheses, then check to make sure it's not empty and that the top is the open parentheses
+            if (s.empty() || s.top() != '(') return false;  //not in order if empty or not open parentheses
+            s.pop();  // remove from stack if it is corresponding parentheses
+            break;
+        case '}':
+            if (s.empty() || s.top() != '{') return false;
+            s.pop();
+            break;
+        case ']':
+            if (s.empty() || s.top() != '[') return false;
+            s.pop();
+            break;
+        default:
+            break;  //if none of those, then just ignores and loops to next character
+        }
+
+    }
+    return s.empty();  //if the stack is empty and therefore all of the items had corresponding items and matched appropriately, then true
+
+
 }
 
 }  // namespace dungeon
