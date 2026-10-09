@@ -250,6 +250,17 @@ int main() {
                 hero.eventLog.push_front("sort inventory by " + criterion);
             }
             else if (cmd == "undo") {
+                if (hero.undoStack.empty()) {
+                    std::cout << "Nothing to undo.\n";
+                }
+                else {
+                    //bind a const reference to our top action
+                    const UndoAction& a = hero.undoStack.top();
+                    hero.inventory = a.inventorySnapshot; //now read it
+                    std::cout << "Undid: " << a.description << "\n";
+                    hero.eventLog.push_front("undo(" + a.description + ")"); //add to event long now
+                    hero.undoStack.pop();
+                }
                 // TODO Floor 6 (Friday) — the undo dispatcher.
                 //
                 // The body is short. In English:
@@ -279,7 +290,6 @@ int main() {
                 //
                 // The order matters: bind the reference BEFORE pop().
                 // Once you pop, the Action you were looking at is gone.
-                std::cout << "(undo not yet implemented — TODO Friday in main.cpp)\n";
             }
             else if (cmd == "lint") {
                 if (rest.empty()) {
