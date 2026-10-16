@@ -37,8 +37,24 @@ namespace dungeon {
 // surface area of this algorithm. No indexing, no random access. That
 // is what "FIFO is enough for some problems" means in code.
 
-std::string hotPotato(const std::vector<std::string>& /*names*/, std::size_t /*k*/) {
-    return "(hotPotato unimplemented)";   // TODO Wednesday
+std::string hotPotato(const std::vector<std::string>& names, std::size_t k) {
+    //check if empty
+    if (names.empty()) return "";
+
+    //create the queue
+    Queue<std::string> q;
+    for (const std::string& n : names) {
+        q.enqueue(n);
+    }
+
+    while (q.size() > 1) {
+        for (std::size_t i = 0; i < k - 1; ++i) { //putting copies from front to back for how many within k
+            q.enqueue(q.front()); //add value from front
+            q.dequeue();
+        }
+        q.dequeue(); //then actually removing once reach the k value
+    }
+    return q.front();  //survivor that is still here and no dequeued
 }
 
 }  // namespace dungeon
