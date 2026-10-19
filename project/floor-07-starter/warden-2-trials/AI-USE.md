@@ -12,12 +12,14 @@ Example entries:
 ## Trial I — The Keepers' Brief
 
 (your declaration)
+Did not use
 
 ## Trial II — The Critique
 
 This trial **requires** AI use. The full prompt + reply + critique are in `trial-2-critique.md`. If you used a different LLM for any other reason on this trial (e.g., to look up syntax), declare it here:
 
 (your declaration)
+Only used Gemini to make the AI reply. Did not use for any other part.
 
 ## Trial III — The Marshalling Yard
 
