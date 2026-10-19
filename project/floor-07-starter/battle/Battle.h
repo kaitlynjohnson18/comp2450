@@ -11,10 +11,23 @@
 
 #pragma once
 
+#include <exception>
+#include <string>
+
 #include "../hero/Hero.h"
 
 namespace dungeon {
 
+
+ class BattleException : public std::exception {
+ public:
+     explicit BattleException(const std::string& message) : msg_(message) {}
+
+     const char* what() const noexcept override { return msg_.c_str(); }
+
+ private:
+     std::string msg_;
+ };
 // What happened at the end of the encounter. main.cpp uses this to pick
 // the correct closing banner.
 enum class BattleOutcome {
@@ -29,5 +42,8 @@ enum class BattleOutcome {
 //   - Mutates hero.inventory if items are consumed.
 // Returns the outcome.
 BattleOutcome runWardenBattle(Hero& hero);
+
+BattleOutcome runWaveSurvival(Hero& hero, int waves);
+
 
 }  // namespace dungeon

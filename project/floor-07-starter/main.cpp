@@ -97,6 +97,7 @@ void printHelp() {
               << "                                 — race the sorting algorithms\n"
               << "   benchmark log [N]             — race Chain::push_front vs vector insert(begin)\n"
               << "   battle warden                 — face the Warden of the Foundations\n"
+              << "   battle waves <N>              — face the Warden of the Middle Gates (N waves)\n"
               << "   help                          — this screen\n"
               << "   quit                          — leave the dungeon)\n";
 }
@@ -389,7 +390,7 @@ int main() {
                 if (bad) {
                     std::cout << "Usage: log [--oldest] [n]\n";
                     continue;
-                }
+                } 
                 if (oldestFirst) {
                     printLog(hero.eventLog.rbegin(), hero.eventLog.rend(),
                              n, "oldest first", hero.eventLog.size());
@@ -479,20 +480,40 @@ int main() {
                 }
             }
             else if (cmd == "battle") {
-                if (rest != "warden") {
-                    std::cout << "Usage: battle warden\n";
-                    continue;
-                }
-                BattleOutcome outcome = runWardenBattle(hero);
-                switch (outcome) {
+                std::istringstream bs(rest);
+                std::string which;
+                bs >> which;
+                if (which == "warden") {
+                    BattleOutcome outcome = runWardenBattle(hero);
+                    switch (outcome) {
                     case BattleOutcome::Victory:
                         std::cout << "\nThe Warden falls. The gate opens.\n"; break;
                     case BattleOutcome::Defeat:
                         std::cout << "\nYou fall. The gate stays shut.\n"; break;
                     case BattleOutcome::Fled:
                         std::cout << "\nYou step back from the gate. It does not chase.\n"; break;
+                    }
                 }
-            }
+                else if (which == "waves") {
+                    int n = 0;
+                    if (!(bs >> n) || n < 1) {
+                        std::cout << "Usage: battle waves <N>   (N >= 1)\n";
+                        continue;
+                    }
+                    BattleOutcome outcome = runWaveSurvival(hero, n);
+                    switch (outcome) {
+                    case BattleOutcome::Victory:
+                        std::cout << "\nThe yard quiets. The inner gate opens.\n"; break;
+                    case BattleOutcome::Defeat:
+                        std::cout << "\nYou fall in the yard. The gate stays shut.\n"; break;
+                    case BattleOutcome::Fled:
+                        std::cout << "\nYou step back from the yard. Uncleared waves remain.\n"; break;
+                    }
+                }
+                else {
+                    std::cout << "Usage: battle warden   |   battle waves <N>\n";
+                }
+             }
             else {
                 std::cout << "Quill does not recognize '" << cmd << "'. Try `help`.\n";
             }

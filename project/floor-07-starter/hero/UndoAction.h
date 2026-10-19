@@ -29,6 +29,7 @@ namespace dungeon {
 struct UndoAction {
     std::string description;        // shown to the player on `undo`
     Bag<Item>   inventorySnapshot;  // restored over hero.inventory on undo
+    int         playerHP = 0;
 };
 
 }  // namespace dungeon
