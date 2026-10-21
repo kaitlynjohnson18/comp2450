@@ -106,8 +106,9 @@ public:
     //     parent->children.push_back(child);
     //     return child;
     Node* addChild(Node* parent, const T& value) {
-        (void)parent; (void)value;   // silence unused-parameter warnings while stubbed
-        return nullptr;              // TODO Monday
+        Node* child = new Node(value, parent); //pointer up where child points to parent
+        parent->children.push_back(child); //pointer down where parent points to child
+        return child;
     }
 
     // Total number of nodes in the tree. Recursive: one node, plus the
@@ -157,6 +158,17 @@ public:
     //     }
     std::vector<T> levelOrder() const {
         std::vector<T> out;
+        if (root_ == nullptr) return out;
+        Queue <Node*> q;
+        q.enqueue(root_); //level 0
+        while (!q.empty()) { //no recursion
+            Node* cur = q.front();
+            q.dequeue();
+            out.push_back(cur->data);
+            for (std::size_t i = 0; i < cur->children.size(); ++i) {
+                q.enqueue(cur->children[i]); //children join at the back from the current level in tree
+            }
+        } //adding root node, then dequeueing it and adding the children, going through children and add their children by level
         // TODO Wednesday
         return out;
     }
@@ -217,8 +229,14 @@ private:
     //         total += countFrom(n->children[i]);
     //     return total;
     static std::size_t countFrom(const Node* n) {
-        (void)n;
-        return 0;   // TODO Monday
+        if (n == nullptr) return 0;
+        std::size_t total = 1; //adding that node
+        for (std::size_t i = 0; i < n->children.size(); ++i) {
+            total += countFrom(n->children[i]); //recurse to each child until empty subtree
+        }
+        return total;
+        
+        // TODO Monday
     }
 
     // Height (in edges) of the subtree rooted at n. A null subtree and a
@@ -231,8 +249,13 @@ private:
     //         best = std::max(best, heightFrom(n->children[i]));
     //     return 1 + best;
     static std::size_t heightFrom(const Node* n) {
-        (void)n;
-        return 0;   // TODO Monday
+        if (n == nullptr || n->children.size() == 0) return 0;
+        std::size_t best = 0;
+        for (std::size_t i = 0; i < n->children.size(); ++i) {
+            best = std::max(best, heightFrom(n->children[i]));
+        }
+        return 1 + best;
+           // TODO Monday
     }
 
     // Append this node's data, THEN each child's subtree in order. The
@@ -244,7 +267,11 @@ private:
     //     for (std::size_t i = 0; i < n->children.size(); ++i)
     //         preOrderInto(n->children[i], out);
     static void preOrderInto(const Node* n, std::vector<T>& out) {
-        (void)n; (void)out;
+        if (n == nullptr) return;
+        out.push_back(n->data);
+        for (std::size_t i = 0; i < n->children.size(); ++i) {
+            preOrderInto(n->children[i], out);
+        }
         // TODO Wednesday
     }
 
