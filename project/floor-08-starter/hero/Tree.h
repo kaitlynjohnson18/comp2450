@@ -188,7 +188,7 @@ public:
         std::vector<T> path;
         const Node* n = findFrom(root_, value);
         if (n == nullptr) return path;          // not found → empty path
-        for (const Node* p = n; p != nullptr; p = p->parent) path.push_back(p->data);
+        for (const Node* p = n; p != nullptr; p = p->parent) path.push_back(p->data); //going from child up through parents
         std::reverse(path.begin(), path.end());  // collected leaf→root; flip it
         return path;
     }
@@ -286,7 +286,11 @@ private:
     //         if (const Node* hit = findFrom(n->children[i], value)) return hit;
     //     return nullptr;
     static const Node* findFrom(const Node* n, const T& value) {
-        (void)n; (void)value;
+        if (n == nullptr) return nullptr; //base case: empty subtree
+        if (n->data == value) return n;
+        for (std::size_t i = 0; i < n->children.size(); ++i) {
+            if (const Node* hit = findFrom(n->children[i], value)) return hit; //search this child's subtree, return if hit
+        }
         return nullptr;   // TODO Friday
     }
 };
