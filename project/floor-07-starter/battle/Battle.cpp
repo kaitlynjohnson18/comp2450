@@ -56,6 +56,12 @@ struct MenuOptions {
     std::string action;
 };
 
+struct Enemy {
+    std::string name;
+    int hp;
+    int attack;
+};
+
 void ValidateHP(int& HP) {
     if (HP < 0) {
         HP = 0;
@@ -72,12 +78,34 @@ void WardenAttack(Hero& hero, int& playerHP, int& wardenHP) {
             "the Warden struck for " + std::to_string(kWardenAttackDmg));
     }
 }
+
+void WardenAttackWave(Hero& hero, int& playerHP, const Queue<Enemy>& line) {
+    if (playerHP > 0 && line.front().hp > 0) {
+        playerHP = playerHP - line.front().attack;
+        ValidateHP(playerHP);
+        std::cout << line.front().name << " retaliates for " << line.front().attack <<
+            ".   Your HP -> " << playerHP << ".\n";
+        hero.eventLog.push_front(line.front().name + " struck for " + std::to_string(line.front().attack)); //Floor 4/4.5
+    }
+}
 void PrintMenu(Bag<MenuOptions> menu, int playerHP, int wardenHP) {
     std::cout << "\n -- Your turn --    your HP: " << playerHP << "    Warden HP: " << wardenHP << "\n";
     for (MenuOptions& option : menu) {
         std::cout << "   " << option.number << ". " << option.action << "\n";
     }
     std::cout << ">";
+}
+
+void PrintMenuWave(Bag<MenuOptions> menu, int playerHP, int currWave, int numWave, const Enemy& current, const Queue<Enemy>& line) {
+    std::cout << "\n-- Wave " << currWave << "/" << numWave << " --   "
+        << "your HP " << playerHP << "       enemies remaining: " << line.size() << "\n";
+    std::cout << "  front of line: " << current.name << " (HP " <<
+        current.hp << ", ATK " << current.attack << ")\n";
+    for (MenuOptions& option : menu) {
+        std::cout << "   " << option.number << ". " << option.action << "\n";
+    }
+    std::cout << ">";
+    
 }
 
 MenuOptions ReadTurnInput(const Bag<MenuOptions>& menu) {
@@ -102,6 +130,8 @@ MenuOptions ReadTurnInput(const Bag<MenuOptions>& menu) {
     //Floor 3: throwing a BagException when it is a bad index
 }
 
+
+
 void AttackAction(Hero& hero, int& playerHP, int& wardenHP) {
     wardenHP = wardenHP - kPlayerAttackDmg;
     ValidateHP(wardenHP);
@@ -110,6 +140,25 @@ void AttackAction(Hero& hero, int& playerHP, int& wardenHP) {
     hero.eventLog.push_front(
         "you struck for " + std::to_string(kPlayerAttackDmg));
     WardenAttack(hero, playerHP, wardenHP);
+}
+
+void DequeueLine(Queue<Enemy>& line, Hero& hero) {
+    if (line.front().hp == 0) {
+        std::cout << line.front().name << " falls. Next in line steps forward.\n";
+        hero.eventLog.push_front(line.front().name + " fell"); //Floor 4/4.5
+        line.dequeue();
+        return;
+    }
+}
+
+void AttackActionWave(Hero& hero, Queue<Enemy>& line) {
+    line.front().hp = line.front().hp - kPlayerAttackDmg;
+    ValidateHP(line.front().hp);
+    std::cout << "You strike " << line.front().name << " for " << kPlayerAttackDmg <<
+        ".   HP -> " << line.front().hp << "\n";
+    hero.eventLog.push_front(
+        "You struck " + line.front().name + " for " + std::to_string(kPlayerAttackDmg)); //Floor 4/4.5
+
 }
 
 void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
@@ -143,7 +192,7 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
                 }
                 std::cout << "You guzzle a delicious draught of Healing potion. HP -> " <<
                     playerHP << ". \n";
-                hero.eventLog.push_front("You drink a potion and heal by " + std::to_string(item->value));
+                hero.eventLog.push_front("You drink a potion and heal by " + std::to_string(item->value)); //Floor 4/4.5
                 return;
             }
             else if (item->name == "Rusty sword") {
@@ -153,7 +202,7 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
                 ValidateHP(playerHP);
                 std::cout << "You attack with a Rusty Sword but also cut yourself. Warden HP -> " <<
                     wardenHP << ".\n" << "Your HP: " << playerHP << "\n";
-                hero.eventLog.push_front("You use a Rusty Sword");
+                hero.eventLog.push_front("You use a Rusty Sword"); //Floor 4/4.5
                 return;
             }
             else {
@@ -167,11 +216,36 @@ void UseItemAction(Hero& hero, int& playerHP, int& wardenHP) {
     }
 }
 
+Queue<Enemy> BuildWave(int wave) {
+    Queue<Enemy> line;
+    for (int i = 0; i <= wave; i++) {
+        if (i % 4 == 0) {
+            line.enqueue({ "Zombie " + std::to_string(i + 1), 10, 2 });
+        }
+        else if (i % 4 == 1) {
+            line.enqueue({ "Skeleton " + std::to_string(i + 1), 16, 4 });
+        }
+        else if (i % 4 == 2) {
+            line.enqueue({ "Creeper " + std::to_string(i + 1), 8, 5 });
+        }
+        else if (i % 4 == 3) {
+            line.enqueue({ "Spider " + std::to_string(i + 1), 11, 3 });
+        }
+    }
+
+    return line;
+}
+
+void recordUndo(Stack<UndoAction>& battleUndo, std::string description, const Hero& hero, int playerHP) {
+    UndoAction a; //Floor 6
+    a.description = description;
+    a.inventorySnapshot = hero.inventory;
+    a.playerHP = playerHP;
+    battleUndo.push(a);
+}
+
 }  // anonymous namespace
 
-BattleOutcome runWaveSurvival(Hero& hero, int waves) {
-    return BattleOutcome::Fled;
-}
 
 BattleOutcome runWardenBattle(Hero& hero) {
 
@@ -236,6 +310,102 @@ BattleOutcome runWardenBattle(Hero& hero) {
         return BattleOutcome::Victory;
     }
     return BattleOutcome::Fled;
+
+}
+
+BattleOutcome runWaveSurvival(Hero& hero, int waves) {
+
+    int playerHP = kPlayerStartHP;
+    if (waves < 1) waves = 1;
+
+    Bag<MenuOptions> menu;
+    menu.push_back({ 1, "Attack" });
+    menu.push_back({ 2, "Use Item" });
+    menu.push_back({ 3, "Inspect Log" });
+    menu.push_back({ 4, "Undo" });
+    menu.push_back({ 5, "Flee" });
+
+    //important for the UndoAction to be a stack because you want to undo the last action put in, which aligns with Stack's LIFO
+    Stack<UndoAction> battleUndo; //Floor 6
+    bool undoUsed = false;
+
+    hero.eventLog.push_front("battle waves " + std::to_string(waves) + " - yard opens"); //Floor 4/4.5
+
+    for (int w = 1; w <= waves; w++) {
+        Queue<Enemy> line = BuildWave(w); //Floor 7
+        hero.eventLog.push_front("wave " + std::to_string(w) + " enters"); //Floor 4/4.5
+
+        while (!line.empty() && playerHP > 0) {
+            try {
+                Enemy& front = line.front();
+                MenuOptions selectedOption;
+                PrintMenuWave(menu, playerHP, w, waves, line.front(), line);
+                selectedOption = ReadTurnInput(menu);
+                switch (selectedOption.number) {
+                case 1: //Attack
+                    recordUndo(battleUndo, "attack " + line.front().name, hero, playerHP);
+                    undoUsed = false;
+                    AttackActionWave(hero, line);
+                    WardenAttackWave(hero, playerHP, line);
+                    DequeueLine(line, hero);
+                    break;
+
+                case 2: //Use Item
+                    recordUndo(battleUndo, "use item", hero, playerHP);
+                    undoUsed = false;
+                    UseItemAction(hero, playerHP, line.front().hp);
+                    WardenAttackWave(hero, playerHP, line);
+                    DequeueLine(line, hero); //Floor 7
+                    break;
+
+                case 3: //Inspect Log
+                    std::cout << " -- recent log (newest first; free action) -- \n";
+                    printLog(hero.eventLog.begin(), hero.eventLog.end(), 5, "newest first", hero.eventLog.size()); //Floor 5
+
+                    break;
+
+                case 4: //Undo
+                    if (undoUsed) {
+                        std::cout << "you may only undo once per turn. \n";
+                    }
+                    else if (battleUndo.empty()) {
+                        std::cout << "nothing to undo yet.\n";
+                    }
+                    else {
+                        const UndoAction& a = battleUndo.top(); //Floor 6
+                        hero.inventory = a.inventorySnapshot;
+                        playerHP = a.playerHP;
+                        std::cout << "Undid: " << a.description << ". Your HP --> " <<
+                            playerHP << ". Enemy state is unchanged. \n";
+                        hero.eventLog.push_front("(undo) reverted: " + a.description); //Floor 4/4.5
+                        battleUndo.pop();
+                        undoUsed = true;
+                        //Does not restore the enemy's HP
+                    }
+                    break;
+
+                case 5: //Flee
+                    hero.eventLog.push_front("waves - fled"); //Floor 4/4.5
+                    return BattleOutcome::Fled;
+                }
+
+
+            }
+            catch (const std::exception& e) {
+                std::cout << e.what() << " - try again\n";
+            }
+        }
+        if (playerHP <= 0) {
+            hero.eventLog.push_front("battle waves - outcome: Defeat"); //Floor 4/4.5
+            return BattleOutcome::Defeat;
+        }
+        hero.eventLog.push_front("wave " + std::to_string(w) + " cleared"); //Floor 4/4.5
+        std::cout << "Wave " << w << " cleared.\n";
+        
+    }
+    hero.eventLog.push_front(
+        "battle waves -- outcome: Victory"); //Floor 4/4.5
+    return BattleOutcome::Victory;
 
 }
 

@@ -8,8 +8,7 @@ This file is the grader's map of your wave-survival code. Help us find each piec
 
 ## AI declaration for Trial III
 
-(One or two sentences. *Which* tool, *what* you asked it for, *what* you did with the result. "Did not use" is fine — but the line must be there.)
-
+Did not use 
 ---
 
 ## Two functions I wrote without AI assistance
@@ -68,3 +67,14 @@ Which Floor's tie was hardest to wire in, and why? Was it picking the iterator d
 If you changed the player's starting HP, the per-wave enemy lineup, the damage numbers, or added any new tunables (item healing amounts, between-wave heals, etc.), list them and their values here so the grader can play through your battle without surprise.
 
 (your notes, or "defaults")
+
+I incorporated the same elements that were in my first warden battle. The healing potion heals for it's value amount. The Rusty Sword attacks
+based on its value amount but it also causes one point of damage to yourself.
+
+In this lab, I made my own enemies and associated numbers for the lineup.
+This includes the 
+Zombie (HP = 10, attack = 2)
+Skeleton (HP = 16, attack = 4)
+Creeper (HP = 8, attack = 5)
+Spider (HP = 11, attack = 3)
+
