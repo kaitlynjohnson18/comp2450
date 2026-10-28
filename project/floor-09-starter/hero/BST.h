@@ -56,7 +56,7 @@ public:
         T     data;
         Node* left  = nullptr;
         Node* right = nullptr;
-        explicit Node(const T& v) : data(v) {}
+        explicit Node(const T& v) : data(v) {} //new node has nothing below it
     };
 
     // ----- lifetime --------------------------------------------------
@@ -131,8 +131,17 @@ private:
     //     else if (n->data < value) n->right = insertInto(n->right, value);
     //     return n;
     static Node* insertInto(Node* n, const T& value) {
-        (void)value;
-        return n;   // TODO Monday — stub leaves the tree unchanged
+        if (n == nullptr) { //new spote so this is where the value goes
+            return new Node(value);
+        }
+        if (value < n->data) { //going to left and then recursively checking to see if null or if larger/smaller
+            n->left = insertInto(n->left, value);
+        }
+        else if (n->data < value) { //going right and then recursively checking to see if null or if larger/smaller
+            n->right = insertInto(n->right, value);
+        }
+        return n;  //if equal, then already in tree so just return the node
+        // TODO Monday — stub leaves the tree unchanged
     }
 
     // Search for `value`. Unlike Floor 8's findFrom, you do NOT ask every
@@ -145,8 +154,18 @@ private:
     //     if (n->data < value) return findFrom(n->right, value);
     //     return n;   // equal => found
     static const Node* findFrom(const Node* n, const T& value) {
-        (void)n; (void)value;
-        return nullptr;   // TODO Monday
+        if (n == nullptr) { //not found so just nullptr
+            return nullptr;
+        }
+        if (value < n->data) {  //recursively checking left to see if in tree
+            return findFrom(n->left, value);
+        }
+        if (n->data < value) { //recursively checking right to see if in tree
+            return findFrom(n->right, value);
+        }
+        return n;   //equal so it is found and therefore returns that node
+        // TODO Monday
+
     }
 
     // ----- Wednesday -------------------------------------------------
@@ -162,7 +181,10 @@ private:
     //     out.push_back(n->data);
     //     inOrderInto(n->right, out);
     static void inOrderInto(const Node* n, std::vector<T>& out) {
-        (void)n; (void)out;
+        if (n == nullptr) return; //stopping once end of tree
+        inOrderInto(n->left, out); //checking left side since this side is smaller
+        out.push_back(n->data); //once left side recurses, then push back the data from bottom
+        inOrderInto(n->right, out); //then adding the right side
         // TODO Wednesday
     }
 
@@ -176,7 +198,10 @@ private:
     //     destroy(n->right);
     //     delete n;
     static void destroy(Node* n) {
-        (void)n;
+        if (n == nullptr) return; //stopping once bottom of tree
+        destroy(n->left); // destroying left children
+        destroy(n->right); //destroying right children
+        delete n; //then destroying itself
         // TODO Wednesday — until written, the BST leaks its nodes
     }
 
@@ -190,8 +215,12 @@ private:
     //     copy->right = clone(n->right);
     //     return copy;
     static Node* clone(const Node* n) {
-        (void)n;
-        return nullptr;   // TODO Wednesday — stub copies to an empty tree
+        if (n == nullptr) return nullptr; //just returning nullptr if end of tree that is being copied
+        Node* copy = new Node(n->data); //allocating new node called copy
+        copy->left = clone(n->left); //allocating new nodes for left
+        copy->right = clone(n->right); //allocating new nodes for right
+        return copy;  //
+         // TODO Wednesday — stub copies to an empty tree
     }
 
     // ----- Friday ----------------------------------------------------
