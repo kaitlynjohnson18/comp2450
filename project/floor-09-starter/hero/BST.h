@@ -249,8 +249,37 @@ private:
     //     n->right = removeFrom(n->right, succ->data, discard);
     //     return n;
     static Node* removeFrom(Node* n, const T& value, bool& removed) {
-        (void)value; (void)removed;
-        return n;   // TODO Friday — stub leaves the tree unchanged
+        if (n == nullptr) return nullptr;
+        if (value < n->data) { //smaller then remove from the left side
+            n->left = removeFrom(n->left, value, removed);
+            return n;
+        }
+        if (n->data < value) { //if larger, then remove from right side
+            n->right = removeFrom(n->right, value, removed);
+            return n; 
+        }
+
+    //found the value so now checking cases
+        removed = true;
+        if (n->left == nullptr) { //saving child; no left child; right side moves up
+            Node* r = n->right;
+            delete n;
+            return r;
+        }
+        if (n->right == nullptr) { //no right child; so left side moves up
+            Node* l = n->left; 
+            delete n;
+            return l;
+        }
+        //two children case; find smallest value on right side
+        Node* succ = n->right; //step right once
+        while (succ->left != nullptr) succ = succ->left; //going down left side to find smallest on the right until furthest can go
+        n->data = succ->data; //copy that value into this node
+        bool discard = false; //removed is already true so ignore what the next call reports back
+        n->right = removeFrom(n->right, succ->data, discard); //remove old copy from right side that now has no left child
+        return n;   //same node with new value now
+        
+        // TODO Friday 
     }
 };
 
