@@ -207,8 +207,9 @@ private:
     //     if (n == nullptr) return 0;
     //     return signedHeight(n->left) - signedHeight(n->right);
     static int balanceFactorOf(const Node* n) {
-        (void)n;
-        return 0;   // TODO Monday — stub reports every tree as perfectly level
+        if (n == nullptr) return 0;
+        return signedHeight(n->left) - signedHeight(n->right); //signedHeight returns 1 + max height from left and right subtrees
+       // TODO Monday — stub reports every tree as perfectly level
     }
 
     // True iff the subtree at n is height-balanced at EVERY node. Check THIS
@@ -221,8 +222,11 @@ private:
     //     if (bf < -1 || bf > 1) return false;
     //     return isBalancedFrom(n->left) && isBalancedFrom(n->right);
     static bool isBalancedFrom(const Node* n) {
-        (void)n;
-        return true;   // TODO Monday — stub claims every tree is balanced
+        if (n == nullptr) return true;
+        const int bf = balanceFactorOf(n);
+        if (bf < -1 || bf > 1) return false;
+        return isBalancedFrom(n->left) && isBalancedFrom(n->right); //checking balance factor for each side, returns false if anything is not balanced
+        // TODO Monday — stub claims every tree is balanced
     }
 
     // ----- Wednesday: the rotation primitive -------------------------
@@ -246,7 +250,12 @@ private:
     //     pivot->right = n;
     //     return pivot;
     static Node* rotateRight(Node* n) {
-        return n;   // TODO Wednesday — stub returns the tree unrotated
+        Node* pivot = n->left;  //left comes up
+        n->left = pivot->right; //original value has a left value from the pivot's rightside
+        pivot->right = n; //now pivot is above and it's right side is the original value
+        return pivot;
+
+        // TODO Wednesday — stub returns the tree unrotated
     }
 
     // Left rotation around n — the mirror of rotateRight. n's RIGHT child
@@ -259,7 +268,11 @@ private:
     //     pivot->left = n;
     //     return pivot;
     static Node* rotateLeft(Node* n) {
-        return n;   // TODO Wednesday — stub returns the tree unrotated
+        Node* pivot = n->right;
+        n->right = pivot->left;
+        pivot->left = n;
+        return pivot;
+        // TODO Wednesday — stub returns the tree unrotated
     }
 
     // ----- Friday: pick the rotation ---------------------------------
