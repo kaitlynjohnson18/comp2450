@@ -110,9 +110,12 @@ public:
     //
     // TODO Floor 10 (Monday). Stub is empty -> phases 1–6 all FAIL (everything
     // is empty). Monday's first edit lights phase 1.
+    
+    //adds monsters
     void index(const Monster& m) {
-        (void)m;
-        // TODO Monday — populate byName_, weaknesses_, and weaknessCounts_.
+        byName_[m.name] = m;    //file record for the monster under its name; map where at that name, the monster is filed
+        weaknesses_.insert(m.weakness);
+        weaknessCounts_[m.weakness] += 1;
     }
 
     // Return whether a monster with that name is in the registry — using the
@@ -121,8 +124,8 @@ public:
     // TODO Floor 10 (Monday). Sketch:
     //     return byName_.count(name) > 0;     // (or: find(name) != end())
     bool knows(const std::string& name) const {
-        (void)name;
-        return false;   // TODO Monday — stub never knows anyone
+        return byName_.count(name) > 0; //count returns true if that name is present
+        //count is 0 or 1; map --> keys are unique
     }
 
     // ----- Wednesday: three containers, three one-liners -------------
@@ -135,8 +138,9 @@ public:
     //     auto it = byName_.find(name);
     //     return it == byName_.end() ? nullptr : &it->second;
     const Monster* recall(const std::string& name) const {
-        (void)name;
-        return nullptr;   // TODO Wednesday — stub finds no one
+        auto it = byName_.find(name);  //finding a name in the map and putting it into iterator
+        return it == byName_.end() ? nullptr : &it->second; //if key was found, then it won't be equal to end;
+        //If it is equal to end, then returns nullptr, if not then returns pointer to that monster
     }
 
     // Return whether ANY monster has weakness w — using set::count on
@@ -146,8 +150,7 @@ public:
     // TODO Floor 10 (Wednesday). Sketch:
     //     return weaknesses_.count(w) > 0;
     bool hasWeakness(const std::string& w) const {
-        (void)w;
-        return false;   // TODO Wednesday — stub claims nothing is weak to anything
+        return weaknesses_.count(w) > 0; // count returns 1 if there is that weakness, 0 if not
     }
 
     // Return how many monsters share weakness w, or 0 if none — by reading
@@ -158,8 +161,10 @@ public:
     //     auto it = weaknessCounts_.find(w);
     //     return it == weaknessCounts_.end() ? 0 : it->second;
     int countWeakness(const std::string& w) const {
-        (void)w;
-        return 0;   // TODO Wednesday — stub counts nothing
+        //do not use brackets because would make a new weakness if it doesn't exist
+        auto it = weaknessCounts_.find(w); //find only looks, doesn't add so will never add a key
+        return it == weaknessCounts_.end() ? 0 : it->second;
+        //finding if that weakness exists. If equal to end(), then doesn't exist and returns 0, if not equal to end, then does exist and returns count
     }
 
     // ----- Friday: mutate, staying consistent ------------------------
@@ -185,8 +190,15 @@ public:
     //     }
     //     return true;
     bool forget(const std::string& name) {
-        (void)name;
-        return false;   // TODO Friday — stub forgets nothing
+        auto it = byName_.find(name); //find it first
+        if (it == byName_.end()) return false; //if no name, then false
+        const std::string w = it->second.weakness; //saving the weakness
+        byName_.erase(it); //remove the plate
+        if (--weaknessCounts_[w] == 0) { //if no  more weakness, then also remove the weakness
+            weaknessCounts_.erase(w); //erasing it from weaknessCounts
+            weaknesses_.erase(w); //erasing it within the weakness list
+        }
+        return true;
     }
 
 private:
