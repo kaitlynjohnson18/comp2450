@@ -169,8 +169,12 @@ public:
     // TODO Floor 11 (Monday). Stub returns 0 -> every name hashes to the same
     // code, so phase 1 (deterministic-AND-distinct) FAILs.
     std::size_t hashKey(const std::string& name) const {
-        (void)name;
-        return 0;   // TODO Monday — multiplicative string hash (h = h*31 + c)
+        std::size_t h = 0;
+        for (char c : name) {
+            h = h * 31 + static_cast<unsigned char>(c); //unsigned to avoid negatives
+        }
+        return h;
+        // TODO Monday — multiplicative string hash (h = h*31 + c)
     }
 
     // Reduce the hash code to a valid bucket index — the MODULO HASH step
@@ -182,8 +186,8 @@ public:
     // TODO Floor 11 (Monday). Stub returns 0 (a VALID index, so no crash), but
     // it sends every name to bucket 0, so distinctness/correctness phases FAIL.
     std::size_t bucketIndex(const std::string& name) const {
-        (void)name;
-        return 0;   // TODO Monday — return hashKey(name) % buckets_.size();
+        return hashKey(name) % buckets_.size();
+        // TODO Monday — return hashKey(name) % buckets_.size();
     }
 
     // Add m to its home bucket. Compute bucketIndex(m.name); if no monster with
@@ -207,8 +211,18 @@ public:
     //     rehashIfNeeded();                              // Fri: grow if crowded
     //     return true;
     bool insert(const Monster& m) {
-        (void)m;
-        return false;   // TODO Monday — push m into bucketIndex(m.name)'s chain
+        std::size_t i = bucketIndex(m.name);
+        for (Monster& existing : buckets_[i]) { //go through Monsters in the bucket at that has
+            if (existing.name == m.name) { //if the name is the same as the one you are trying to insert, then update value
+                existing = m; 
+                return false; //return false since only updated and didn't insert
+            }
+        }
+        buckets_[i].push_back(m); //add monster to that bucket if not already there
+        ++count_; //increase count
+        rehashIfNeeded(); //if too many in bucket, then rehash with this function
+        return true;
+        // TODO Monday — push m into bucketIndex(m.name)'s chain
     }
 
     // ----- Wednesday: one short list, not the whole table ------------
