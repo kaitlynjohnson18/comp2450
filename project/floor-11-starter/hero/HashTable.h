@@ -131,9 +131,13 @@ public:
     // is the aliasing bug §8 warns about).
     void rehash(std::size_t newBucketCount) {
         if (newBucketCount < 1) newBucketCount = 1;
-        std::vector<Chain<Monster>> grown(newBucketCount);
-        for (const Chain<Monster>& bucket : buckets_) {
-            for (const Monster& m : bucket) {
+        std::vector<Chain<Monster>> grown(newBucketCount); //new vector of chains called grown with new bucket count
+        for (const Chain<Monster>& bucket : buckets_) { //going through each bucket
+            for (const Monster& m : bucket) { //going through each chain on the buckets
+                grown[hashKey(m.name) % newBucketCount].push_back(m); 
+                //finding new hasKey based on the name and new bucket count and then pushing back monster at that new bucket
+                // 
+                // 
                 // ===== YOU WRITE (Friday, with rehashIfNeeded #6) =====
                 // Compute m's home in the NEW, bigger array and push it there.
                 // It is one line. Sketch:
@@ -141,10 +145,10 @@ public:
                 // (count_ does NOT change here — rehash moves items, it does not
                 //  add or drop any. The TODO stub below files nothing, so after a
                 //  rehash the table would be EMPTY and self-test phase 6 FAILs.)
-                (void)m;   // TODO Friday — re-file m into grown[...]
+                   // TODO Friday — re-file m into grown[...]
             }
         }
-        buckets_.swap(grown);
+        buckets_.swap(grown); //swapping the buckets with the new grown
     }
 
     // ===== YOU WRITE — the six method bodies =========================
@@ -211,7 +215,7 @@ public:
     //     rehashIfNeeded();                              // Fri: grow if crowded
     //     return true;
     bool insert(const Monster& m) {
-        std::size_t i = bucketIndex(m.name);
+        std::size_t i = bucketIndex(m.name);  
         for (Monster& existing : buckets_[i]) { //go through Monsters in the bucket at that has
             if (existing.name == m.name) { //if the name is the same as the one you are trying to insert, then update value
                 existing = m; 
@@ -242,8 +246,12 @@ public:
     //         if (m.name == name) return &m;
     //     return nullptr;
     const Monster* find(const std::string& name) const {
-        (void)name;
-        return nullptr;   // TODO Wednesday — scan only bucketIndex(name)'s chain
+        std::size_t i = bucketIndex(name);  //finding bucket index for that name
+        for (const Monster& m : buckets_[i]) { //loop through the chain at that bucket index
+            if (m.name == name) return &m; //return if the monster is found with that name
+        }
+        return nullptr; //if not found, then return nullptr
+         // TODO Wednesday — scan only bucketIndex(name)'s chain
     }
 
     // Remove the named monster: compute its bucket, remove the matching item
@@ -260,8 +268,13 @@ public:
     //     if (removed) --count_;
     //     return removed;
     bool erase(const std::string& name) {
-        (void)name;
-        return false;   // TODO Wednesday — eraseFirst from bucketIndex(name)'s chain
+        std::size_t i = bucketIndex(name);
+        bool removed = buckets_[i].eraseFirst([&](const Monster& m) {return m.name == name; }); 
+        //going through the bucket at that index, erasing the first Monster with the same name as one looking for
+        // pass by reference the name into the lambda function
+        if (removed) --count_; //decrement count if it was actually removed
+        return removed;
+           // TODO Wednesday — eraseFirst from bucketIndex(name)'s chain
     }
 
     // ----- Friday: keep the whisper a whisper ------------------------
@@ -278,6 +291,9 @@ public:
     //         rehash(buckets_.size() * 2);
     //     return buckets_.size();
     std::size_t rehashIfNeeded() {
+        if (loadFactor() > kMaxLoadFactor) {  //load factor is count divided by size; kMaxLoadFactor is provided variable
+            rehash(buckets_.size() * 2);
+        }
         return buckets_.size();   // TODO Friday — grow when loadFactor() > kMaxLoadFactor
     }
 
